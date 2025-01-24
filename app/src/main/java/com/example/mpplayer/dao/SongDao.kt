@@ -1,16 +1,16 @@
 package com.example.mpplayer.dao
 
-import androidx.lifecycle.LiveData
-import androidx.room.Insert
 import androidx.room.Dao
 import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.mpplayer.tables.Song
 
 @Dao()
 interface SongDao {
-    @Insert()
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertSong(song: Song)
 
     @Delete
@@ -20,7 +20,10 @@ interface SongDao {
     fun updateSong(song: Song)
 
     @Query("SELECT * FROM songs_table")
-    fun getAllSongs() : LiveData<List<Song>>
+    suspend fun getAllSongs(): List<Song>
+
+    @Query("SELECT * FROM songs_table WHERE song_id = :songId")
+    suspend fun getSongById(songId: Long): Song
 //    @Query("UPDATE songs_table SET song_title = :title WHERE song_id = :songId")
 //    fun updateTitle(title: String, songId: Long)
 //

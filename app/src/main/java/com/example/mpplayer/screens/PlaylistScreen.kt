@@ -38,17 +38,16 @@ import com.example.mpplayer.view.models.SongViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SongsScreen(
+fun PlaylistScreen(
     navController: NavController,
     songViewModel: SongViewModel,
     playlistViewModel: PlaylistViewModel,
-    playlistSongsViewModel: PlaylistSongsViewModel
+    playlistSongsViewModel: PlaylistSongsViewModel,
+    playlistId: Long
 ) {
-    songViewModel.getAllSongs()
-    val songsList by songViewModel.songsList.observeAsState(emptyList())
-//    val playlists by playlistViewModel.playlistsList.observeAsState(emptyList())
-//    val playlistSongs by playlistSongsViewModel.playlistSongsList.observeAsState(emptyList())
-
+    playlistSongsViewModel.getAllSongsFromPlaylist(playlistId)
+    val playlistSongs by playlistSongsViewModel.songIds.observeAsState(emptyList())
+    val song by songViewModel.selectedSong.observeAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -68,8 +67,9 @@ fun SongsScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            items(songsList.size) { index ->
-                val song = songsList[index]
+            items(playlistSongs.size) { index ->
+                val playlistSong = playlistSongs[index]
+                songViewModel.getSong(playlistSong.songId)
                 Box(
                     modifier = Modifier
                         .border(1.dp, Color.Red)
@@ -79,19 +79,19 @@ fun SongsScreen(
                         Image(
                             modifier = Modifier.size(100.dp, 100.dp),
                             painter = painterResource(id = R.drawable.subliming),
-                            contentDescription = "${song.title}"
+                            contentDescription = "${song?.title}"
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
-                            Text("Title: ${song.title}")
-                            Text("Album: ${song.album}")
-                            Text("Artist: ${song.artist}")
-                            Text("Genre: ${song.genre}")
+                            Text("Title: ${song?.title}")
+                            Text("Album: ${song?.album}")
+                            Text("Artist: ${song?.artist}")
+                            Text("Genre: ${song?.genre}")
                             // TODO: Place Stars icons based on song.rating
                         }
                         Spacer(modifier = Modifier.width(30.dp))
                         Button(onClick = {
-                            navController.navigate("addSongToPlaylist/${song.songId}")
+                            navController.navigate("addSongToPlaylist/${song?.songId}")
                         }) {
                             Icon(
                                 Icons.Rounded.Add,

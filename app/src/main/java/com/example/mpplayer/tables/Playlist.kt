@@ -1,14 +1,14 @@
 package com.example.mpplayer.tables
 
-import androidx.room.PrimaryKey
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "playlist_table")
 data class Playlist(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "playlist_id")
-    val playlistId: Long,
+    val playlistId: Long = 0,
     @ColumnInfo(name = "playlist_title")
     val title: String,
     @ColumnInfo(name = "playlist_description")

@@ -6,7 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.room.Room
 import com.example.mpplayer.ui.theme.MPPlayerTheme
-import com.example.mpplayer.view.models.PlaylistViewModelModel
+import com.example.mpplayer.view.models.PlaylistSongsViewModel
+import com.example.mpplayer.view.models.PlaylistViewModel
 import com.example.mpplayer.view.models.SongViewModel
 
 class MainActivity : ComponentActivity() {
@@ -19,10 +20,18 @@ class MainActivity : ComponentActivity() {
             "mpp_player_database"
         ).build()// MPPlayerDatabase.getDatabase(this)
         val songViewModel = SongViewModel(database.songDao())
-        val playlistViewModel = PlaylistViewModelModel(database.playlistDao())
+        songViewModel.getAllSongs()
+        val playlistViewModel = PlaylistViewModel(database.playlistDao())
+        playlistViewModel.getAllPlaylists()
+        val playlistSongsViewModel = PlaylistSongsViewModel(database.playlistSongsDao())
+        playlistSongsViewModel.getAllPlaylistSongs()
         setContent {
             MPPlayerTheme {
-                MPPNavigation(songViewModel, playlistViewModel)
+                MPPNavigation(
+                    songViewModel = songViewModel,
+                    playlistViewModel = playlistViewModel,
+                    playlistSongsViewModel = playlistSongsViewModel
+                )
             }
         }
     }

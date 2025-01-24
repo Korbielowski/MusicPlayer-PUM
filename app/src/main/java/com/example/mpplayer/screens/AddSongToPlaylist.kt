@@ -2,6 +2,7 @@ package com.example.mpplayer.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,11 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,17 +35,16 @@ import com.example.mpplayer.view.models.SongViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SongsScreen(
+fun AddSongToPlaylist(
     navController: NavController,
     songViewModel: SongViewModel,
     playlistViewModel: PlaylistViewModel,
-    playlistSongsViewModel: PlaylistSongsViewModel
+    playlistSongsViewModel: PlaylistSongsViewModel,
+    songId: Long
 ) {
-    songViewModel.getAllSongs()
-    val songsList by songViewModel.songsList.observeAsState(emptyList())
-//    val playlists by playlistViewModel.playlistsList.observeAsState(emptyList())
-//    val playlistSongs by playlistSongsViewModel.playlistSongsList.observeAsState(emptyList())
-
+    val playlists by playlistViewModel.playlistsList.observeAsState(emptyList())
+    songViewModel.getSong(songId)
+    val song by songViewModel.selectedSong.observeAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -57,7 +53,7 @@ fun SongsScreen(
                     titleContentColor = MaterialTheme.colorScheme.primary,
                 ),
                 title = {
-                    Text("List of all songs")
+                    Text("Add ${song?.title} to a playlist")
                 }
             )
         },
@@ -68,39 +64,37 @@ fun SongsScreen(
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            items(songsList.size) { index ->
-                val song = songsList[index]
+            items(playlists.size) { index ->
+                val playlist = playlists[index]
                 Box(
                     modifier = Modifier
                         .border(1.dp, Color.Red)
                         .fillMaxWidth()
+                        .clickable {
+                            playlistSongsViewModel.addSongToPlaylist(
+                                songId = songId,
+                                playlistId = playlist.playlistId
+                            )
+                            navController.navigate("mainScreen")
+                        }
                 ) {
                     Row() {
                         Image(
                             modifier = Modifier.size(100.dp, 100.dp),
-                            painter = painterResource(id = R.drawable.subliming),
-                            contentDescription = "${song.title}"
+                            painter = painterResource(id = R.drawable.tux_mascot),
+                            contentDescription = "${playlist.title}"
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
-                            Text("Title: ${song.title}")
-                            Text("Album: ${song.album}")
-                            Text("Artist: ${song.artist}")
-                            Text("Genre: ${song.genre}")
+                            Text("Playlist title: ${playlist.title}")
+                            Text("Rating: ${playlist.rating}")
                             // TODO: Place Stars icons based on song.rating
                         }
                         Spacer(modifier = Modifier.width(30.dp))
-                        Button(onClick = {
-                            navController.navigate("addSongToPlaylist/${song.songId}")
-                        }) {
-                            Icon(
-                                Icons.Rounded.Add,
-                                contentDescription = "Add song to a playlist"
-                            )
-                        }
                     }
                 }
             }
+
         }
     }
 }
