@@ -1,18 +1,14 @@
 package com.example.mpplayer.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
+import android.app.Application
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
@@ -26,26 +22,35 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.mpplayer.R
+import com.example.mpplayer.BottomBar
+import com.example.mpplayer.PlayerBar
+import com.example.mpplayer.SongView
+import com.example.mpplayer.addSongs
+import com.example.mpplayer.view.models.PlayerViewModel
 import com.example.mpplayer.view.models.PlaylistSongsViewModel
 import com.example.mpplayer.view.models.PlaylistViewModel
 import com.example.mpplayer.view.models.SongViewModel
+import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.R)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SongsScreen(
     navController: NavController,
     songViewModel: SongViewModel,
     playlistViewModel: PlaylistViewModel,
-    playlistSongsViewModel: PlaylistSongsViewModel
+    playlistSongsViewModel: PlaylistSongsViewModel,
+    playerViewModel: PlayerViewModel,
+    application: Application
 ) {
     songViewModel.getAllSongs()
     val songsList by songViewModel.songsList.observeAsState(emptyList())
+    val coroutineScope = rememberCoroutineScope()
 //    val playlists by playlistViewModel.playlistsList.observeAsState(emptyList())
 //    val playlistSongs by playlistSongsViewModel.playlistSongsList.observeAsState(emptyList())
 
@@ -58,49 +63,45 @@ fun SongsScreen(
                 ),
                 title = {
                     Text("List of all songs")
+                },
+                actions = {
+                    Button(onClick = {
+                        coroutineScope.launch {
+                            addSongs(
+                                songViewModel = songViewModel,
+                                application = application
+                            )
+                        }
+                    }) {
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = "Add songs"
+                        )
+                    }
                 }
             )
         },
+        bottomBar = { BottomBar(navController = navController) }
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            items(songsList.size) { index ->
-                val song = songsList[index]
-                Box(
-                    modifier = Modifier
-                        .border(1.dp, Color.Red)
-                        .fillMaxWidth()
-                ) {
-                    Row() {
-                        Image(
-                            modifier = Modifier.size(100.dp, 100.dp),
-                            painter = painterResource(id = R.drawable.subliming),
-                            contentDescription = "${song.title}"
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text("Title: ${song.title}")
-                            Text("Album: ${song.album}")
-                            Text("Artist: ${song.artist}")
-                            Text("Genre: ${song.genre}")
-                            // TODO: Place Stars icons based on song.rating
-                        }
-                        Spacer(modifier = Modifier.width(30.dp))
-                        Button(onClick = {
-                            navController.navigate("addSongToPlaylist/${song.songId}")
-                        }) {
-                            Icon(
-                                Icons.Rounded.Add,
-                                contentDescription = "Add song to a playlist"
-                            )
-                        }
-                    }
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                items(songsList) { song ->
+                    SongView(song, navController, playerViewModel)
                 }
             }
+            PlayerBar(
+                playerViewModel = playerViewModel,
+                navController = navController,
+                modifier = Modifier.align(
+                    Alignment.BottomCenter
+                )
+            )
         }
     }
 }

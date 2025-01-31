@@ -11,19 +11,26 @@ import com.example.mpplayer.tables.Song
 @Dao()
 interface SongDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertSong(song: Song)
+    suspend fun insertSong(song: Song)
 
     @Delete
-    fun deleteSong(song: Song)
+    suspend fun deleteSong(song: Song)
 
     @Update
-    fun updateSong(song: Song)
+    suspend fun updateSong(song: Song)
 
     @Query("SELECT * FROM songs_table")
     suspend fun getAllSongs(): List<Song>
 
     @Query("SELECT * FROM songs_table WHERE song_id = :songId")
     suspend fun getSongById(songId: Long): Song
+
+    @Query("SELECT * FROM songs_table WHERE song_id IN (:songIds)")
+    suspend fun getSongsByIds(songIds: List<Int>?): List<Song>?
+
+    @Query("DELETE FROM songs_table WHERE song_id = :songId")
+    suspend fun deleteSongById(songId: Long)
+
 //    @Query("UPDATE songs_table SET song_title = :title WHERE song_id = :songId")
 //    fun updateTitle(title: String, songId: Long)
 //

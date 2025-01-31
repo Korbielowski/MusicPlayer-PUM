@@ -8,14 +8,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,12 +29,16 @@ import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.mpplayer.BottomBar
+import com.example.mpplayer.PlayerBar
 import com.example.mpplayer.R
+import com.example.mpplayer.view.models.PlayerViewModel
 import com.example.mpplayer.view.models.PlaylistViewModel
 import com.example.mpplayer.view.models.SongViewModel
 
@@ -38,9 +47,11 @@ import com.example.mpplayer.view.models.SongViewModel
 fun MainScreen(
     navController: NavController,
     songViewModel: SongViewModel,
-    playlistViewModel: PlaylistViewModel
+    playlistViewModel: PlaylistViewModel,
+    playerViewModel: PlayerViewModel
 ) {
-    val songsList by songViewModel.songsList.observeAsState(emptyList())
+//    val songsList by songViewModel.songsList.observeAsState(emptyList())
+    playlistViewModel.getAllPlaylists()
     val playlistsList by playlistViewModel.playlistsList.observeAsState(emptyList())
     Scaffold(
         topBar = {
@@ -51,93 +62,68 @@ fun MainScreen(
                 ),
                 title = {
                     Text("List of all playlists")
+                },
+                actions = {
+                    Button(onClick = { navController.navigate("addPlaylistScreen") }) {
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = "Add new playlist"
+                        )
+                    }
                 }
             )
         },
         bottomBar = {
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = { navController.navigate("songsScreen") }) { Text("All songs") }
+            BottomBar(navController = navController)
         }
     ) { innerPadding ->
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Fixed(2),
+        Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalItemSpacing = 10.dp,
+                .fillMaxSize(),
         ) {
-            items(playlistsList.size) { index ->
-                val playlist = playlistsList[index]
-                Box(
-                    modifier = Modifier
-                        .border(1.dp, Color.Red)
-                        .fillMaxWidth()
-                        .clickable {
-                            navController.navigate("playlistScreen/${playlist.playlistId}")
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                items(playlistsList) { playlist ->
+                    Box(
+                        modifier = Modifier
+                            .border(1.dp, Color.Red)
+                            .fillMaxWidth()
+                            .clickable {
+                                navController.navigate("playlistScreen/${playlist.playlistId}")
+                            }
+                    ) {
+                        Row {
+                            Image(
+                                modifier = Modifier.size(100.dp, 100.dp),
+                                painter = painterResource(id = R.drawable.tux_mascot),
+                                contentDescription = "${playlist.title}"
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text("Playlist title: ${playlist.title}")
+                                Text("Rating: ${playlist.rating}")
+                                Text("Id: ${playlist.playlistId}")
+                                // TODO: Place Stars icons based on song.rating
+                            }
+                            Button(onClick = {
+                                navController.navigate("editPlaylist/${playlist.playlistId}")
+                            }) {
+                                Icon(
+                                    Icons.Rounded.Edit,
+                                    contentDescription = "Edit playlist"
+                                )
+                            }
                         }
-                ) {
-                    Row() {
-                        Image(
-                            modifier = Modifier.size(100.dp, 100.dp),
-                            painter = painterResource(id = R.drawable.tux_mascot),
-                            contentDescription = "${playlist.title}"
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text("Playlist title: ${playlist.title}")
-                            Text("Rating: ${playlist.rating}")
-                            Text("Id: ${playlist.playlistId}")
-                            // TODO: Place Stars icons based on song.rating
-                        }
-                        Spacer(modifier = Modifier.width(30.dp))
                     }
                 }
             }
+            PlayerBar(
+                playerViewModel = playerViewModel,
+                navController = navController,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(20.dp),
-//        verticalArrangement = Arrangement.spacedBy(30.dp)
-//    ) {
-//        Button(
-//            onClick = {
-//                navController.navigate("songsScreen")
-//            }, modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//        ) {
-//            Text("See all Your songs")
-//        }
-//        Button(
-//            onClick = {
-//                navController.navigate("playListsScreen")
-//            }, modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//        ) {
-//            Text("See all Your playlists")
-//        }
-//        Button(
-//            onClick = {
-//                songViewModel.addFakeSongs()
-//            }, modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//        ) {
-//            Text("Add fake songs")
-//        }
-//        Button(
-//            onClick = {
-//                playlistViewModel.addFakePlaylists()
-//            }, modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//        ) {
-//            Text("Add fake playlists")
-//        }
-//    }
 }

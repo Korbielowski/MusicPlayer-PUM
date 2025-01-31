@@ -9,15 +9,21 @@ import com.example.mpplayer.tables.Playlist
 
 @Dao
 interface PlaylistDao {
-    @Insert()
-    fun insertPlaylist(playlist: Playlist)
+    @Insert
+    suspend fun insertPlaylist(playlist: Playlist)
 
     @Delete
-    fun deletePlaylist(playlist: Playlist)
+    suspend fun deletePlaylist(playlist: Playlist)
 
     @Update
-    fun updatePlaylist(playlist: Playlist)
-    
+    suspend fun updatePlaylist(playlist: Playlist)
+
     @Query("SELECT * FROM playlist_table")
-    fun getAllPlaylists(): List<Playlist>
+    suspend fun getAllPlaylists(): List<Playlist>
+
+    @Query("SELECT * FROM playlist_table WHERE playlist_id = :playlistId")
+    suspend fun getPlaylistById(playlistId: Long): Playlist
+
+    @Query("DELETE FROM playlist_table WHERE playlist_id = :playlistId")
+    suspend fun deletePlaylistById(playlistId: Long)
 }

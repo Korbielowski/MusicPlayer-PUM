@@ -1,7 +1,6 @@
 package com.example.mpplayer.view.models
 
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,8 +11,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class PlaylistSongsViewModel(private val playlistSongsDao: PlaylistSongsDao) : ViewModel() {
-    private val _songIds = MutableLiveData<List<PlaylistSongs>>()
-    val songIds: MutableLiveData<List<PlaylistSongs>> get() = _songIds
+    private val _songIds = MutableLiveData<List<Int>>()
+    val songIds: MutableLiveData<List<Int>> get() = _songIds
     private val _playlistSongsList = MutableLiveData<List<PlaylistSongs>>()
     val playlistSongsList: MutableLiveData<List<PlaylistSongs>> get() = _playlistSongsList
 
@@ -30,7 +29,6 @@ class PlaylistSongsViewModel(private val playlistSongsDao: PlaylistSongsDao) : V
                         playlistId = playlistId
                     )
                 )
-                Log.i("Created new song-playlist connection", "${songId}, $playlistId")
             }
         }
     }
@@ -44,15 +42,28 @@ class PlaylistSongsViewModel(private val playlistSongsDao: PlaylistSongsDao) : V
     }
 
     fun getAllSongsFromPlaylist(playlistId: Long) {
-        Log.i("Playlist id", "$playlistId")
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 _songIds.postValue(playlistSongsDao.getAllSongsFromPlayList(playlistId))
             }
         }
-        Log.i("printing song values", "${_songIds.value?.size}")
-        _songIds.value?.forEach { id ->
-            Log.i("Song id", "$id")
+    }
+
+    fun deletePlaylist(playlistId: Long) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                playlistSongsDao.deletePlaylistSongsById(playlistId)
+                getAllPlaylistSongs()
+            }
+        }
+    }
+
+    fun deleteSong(songId: Long) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                playlistSongsDao.deleteSongById(songId)
+                getAllPlaylistSongs()
+            }
         }
     }
 }
